@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'currency-mt-parser'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['currency-mt-parser:8080']

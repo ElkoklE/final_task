@@ -4,6 +4,9 @@ import com.example.currencyparser.client.ExternalRateProvider;
 import com.example.currencyparser.dto.CurrencyRateResponse;
 import com.example.currencyparser.model.CurrencyRate;
 import com.example.currencyparser.repository.CurrencyRateRepository;
+import com.example.currencyparser.service.CurrencyRatePersistenceService;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.observation.ObservationRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,6 +27,9 @@ class CurrencyRateServiceTest {
     @Mock
     private CurrencyRateRepository repository;
 
+    @Mock
+    private CurrencyRatePersistenceService persistenceService;
+
     @Test
     void shouldSortUsingParallelStreamByRateToRubDesc() {
         CurrencyRate usd = rate("USD", "100.10");
@@ -36,8 +42,11 @@ class CurrencyRateServiceTest {
         CurrencyRateService service = new CurrencyRateService(
                 List.<ExternalRateProvider>of(),
                 repository,
+                persistenceService,
                 Executors.newFixedThreadPool(2),
-                Executors.newSingleThreadScheduledExecutor()
+                Executors.newSingleThreadScheduledExecutor(),
+                new SimpleMeterRegistry(),
+                ObservationRegistry.NOOP
         );
 
         List<CurrencyRateResponse> result = service.getRatesForDateSorted(

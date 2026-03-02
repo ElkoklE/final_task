@@ -2,6 +2,7 @@ package com.example.currencyparser.controller;
 
 import com.example.currencyparser.dto.CurrencyRateResponse;
 import com.example.currencyparser.service.CurrencyRateService;
+import io.micrometer.observation.annotation.Observed;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ public class CurrencyRateController {
     }
 
     @PostMapping("/collect")
+    @Observed(name = "currency.api.collect")
     public Map<String, String> collect(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
@@ -32,6 +34,7 @@ public class CurrencyRateController {
     }
 
     @GetMapping("/answer")
+    @Observed(name = "currency.api.answer")
     public List<CurrencyRateResponse> answer(
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
@@ -43,6 +46,7 @@ public class CurrencyRateController {
     }
 
     @GetMapping("/answer/by-date")
+    @Observed(name = "currency.api.answer.by_date")
     public CurrencyRateResponse byDateAndCurrency(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam String currency

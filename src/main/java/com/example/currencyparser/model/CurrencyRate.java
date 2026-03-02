@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "currency_rates", indexes = {
-        @Index(name = "idx_currency_date", columnList = "currencyCode, rateDate")
+        @Index(name = "idx_currency_date_collected", columnList = "currency_code, rate_date, collected_at"),
+        @Index(name = "idx_rate_date", columnList = "rate_date")
 })
 public class CurrencyRate {
 
@@ -16,22 +17,22 @@ public class CurrencyRate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 8)
+    @Column(name = "currency_code", nullable = false, length = 8)
     private String currencyCode;
 
-    @Column(nullable = false, precision = 19, scale = 6)
+    @Column(name = "rate_to_rub", nullable = false, precision = 19, scale = 6)
     private BigDecimal rateToRub;
 
-    @Column(nullable = false, precision = 19, scale = 6)
+    @Column(name = "rate_to_usd", nullable = false, precision = 19, scale = 6)
     private BigDecimal rateToUsd;
 
-    @Column(nullable = false, precision = 10, scale = 4)
+    @Column(name = "day_change_percent", nullable = false, precision = 10, scale = 4)
     private BigDecimal dayChangePercent;
 
-    @Column(nullable = false)
+    @Column(name = "rate_date", nullable = false)
     private LocalDate rateDate;
 
-    @Column(nullable = false)
+    @Column(name = "collected_at", nullable = false)
     private LocalDateTime collectedAt;
 
     @Column(nullable = false, length = 64)

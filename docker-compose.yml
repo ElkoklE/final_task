@@ -8,3 +8,50 @@ services:
       - "8080:8080"
     environment:
       APP_COLLECTION_INTERVAL_SECONDS: 300
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+    depends_on:
+      - otel-collector
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: currency-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    depends_on:
+      - currency-mt-parser
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: currency-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./deploy/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./deploy/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    depends_on:
+      - prometheus
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    container_name: currency-jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.109.0
+    container_name: currency-otel-collector
+    command: [ "--config=/etc/otelcol-contrib/config.yaml" ]
+    ports:
+      - "4318:4318"
+    volumes:
+      - ./deploy/otel-collector/otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
+    depends_on:
+      - jaeger

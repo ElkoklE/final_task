@@ -4,3 +4,7 @@ out/
 .idea/
 *.iml
 .DS_Store
+*.hprof
+*.jfr
+gc.log
+threaddump.json
