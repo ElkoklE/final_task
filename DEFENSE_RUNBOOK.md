@@ -1,23 +1,23 @@
-# Defense Runbook (Step-by-step)
+# Сценарий Защиты (Пошагово)
 
-## 0. Start stack
+## 0. Запуск стека
 ```bash
 docker compose up --build -d
 ```
 
-Check containers:
+Проверка контейнеров:
 ```bash
 docker compose ps
 ```
 
-## 1. Trigger data collection
+## 1. Запуск сбора данных
 ```bash
 curl -X POST "http://localhost:8080/api/v1/collect?date=2025-11-11"
 sleep 3
 curl "http://localhost:8080/api/v1/answer?date=2025-11-11&sortBy=rateToRub&direction=desc"
 ```
 
-## 2. Actuator evidence
+## 2. Демонстрация Actuator
 ```bash
 curl http://localhost:8080/actuator/health
 curl http://localhost:8080/actuator/info
@@ -28,27 +28,27 @@ curl http://localhost:8080/actuator/heapdump > heapdump.hprof
 curl http://localhost:8080/actuator/prometheus | head -n 50
 ```
 
-Take screenshots:
+Скриншоты для отчета:
 1. `/actuator/health`
 2. `/actuator/info`
 3. `/actuator/metrics/http.server.requests`
 
-## 3. Throughput and latency test
-If k6 is installed:
+## 3. Тест пропускной способности и задержки
+Если установлен `k6`:
 ```bash
 k6 run scripts/k6-answer-load.js
 ```
 
-Take screenshots:
-1. k6 summary output (RPS, p95, errors)
-2. Grafana dashboard panels (throughput + latency)
+Скриншоты для отчета:
+1. Итог `k6` (RPS, p95, доля ошибок)
+2. Панели Grafana (throughput и latency)
 
-## 4. Prometheus and Grafana
-Open:
+## 4. Prometheus и Grafana
+Открыть:
 - Prometheus: `http://localhost:9090`
 - Grafana: `http://localhost:3000` (`admin/admin`)
 
-Prometheus queries:
+Запросы в Prometheus:
 - `rate(http_server_requests_seconds_count{uri=~"/api/v1/.*"}[1m])`
 - `histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{uri=~"/api/v1/.*"}[1m])) by (le, uri))`
 - `currency_parser_parse_success_total`
@@ -58,14 +58,14 @@ Prometheus queries:
 - `jvm_gc_pause_seconds_count`
 - `jvm_gc_pause_seconds_max`
 
-Take screenshots:
-1. Prometheus graph with HTTP metric
-2. Grafana dashboard full view
+Скриншоты для отчета:
+1. График HTTP-метрик в Prometheus
+2. Полный дашборд в Grafana
 
-## 5. Tracing in Jaeger
-Open `http://localhost:16686`, service `currency-mt-parser`.
+## 5. Трейсинг в Jaeger
+Открыть `http://localhost:16686`, выбрать сервис `currency-mt-parser`.
 
-Expected spans:
+Ожидаемые спаны:
 - `currency.api.collect`
 - `currency.api.answer`
 - `currency.api.answer.by_date`
@@ -73,36 +73,36 @@ Expected spans:
 - `currency.parser.provider`
 - `currency.parser.persist.batch`
 
-Take screenshots:
-1. Trace list
-2. One full trace with span timings
+Скриншоты для отчета:
+1. Список трейсов
+2. Один полный трейс с длительностями спанов
 
-## 6. JMH benchmarks
+## 6. JMH-бенчмарки
 ```bash
 ./gradlew jmh
 ```
 
-Take screenshot:
-1. JMH console result with three methods
+Скриншот для отчета:
+1. Консольный вывод JMH с тремя методами
 
-## 7. JFR / GC analysis
-Run with GC log and JFR (outside docker, local run):
+## 7. Анализ JFR / GC
+Локальный запуск (вне Docker) с GC-логом и JFR:
 ```bash
 ./gradlew bootRun -Dorg.gradle.jvmargs='-Xms512m -Xmx512m -Xlog:gc*:file=gc.log:time,uptime,level,tags -XX:StartFlightRecording=filename=recording.jfr,duration=120s,settings=profile'
 ```
 
-Analyze:
-- `recording.jfr` in JDK Mission Control / VisualVM
-- `heapdump.hprof` in VisualVM
-- `gc.log` for pause frequency and max pause
+Что анализировать:
+- `recording.jfr` в JDK Mission Control / VisualVM
+- `heapdump.hprof` в VisualVM
+- `gc.log`: частота GC и максимальные паузы
 
-Take screenshots:
-1. CPU hotspot view
-2. Allocation view
-3. GC pauses
-4. Heap top objects
+Скриншоты для отчета:
+1. CPU hotspots
+2. Allocation hotspots
+3. Паузы GC
+4. Топ объектов в heap
 
-## 8. Stop stack
+## 8. Остановка стека
 ```bash
 docker compose down
 ```
